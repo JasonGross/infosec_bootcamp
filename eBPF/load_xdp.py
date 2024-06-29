@@ -3,11 +3,11 @@ from bcc import BPF
 import pyroute2
 
 # Define the BPF program
-bpf = BPF(src_file="xdp_prog.c")
+bpf = BPF(src_file="xdp_prog.c", debug=4)
 
 # Attach XDP program to the network interface
 device = "eth0"  # Change this to your network interface
-fn = bpf.load_func("xdp_prog", BPF.XDP, debug=4)
+fn = bpf.load_func("xdp_prog", BPF.XDP)
 bpf.attach_xdp(device, fn, 0)
 
 # Get reference to the ring buffer map
