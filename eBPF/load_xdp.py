@@ -7,7 +7,7 @@ bpf = BPF(src_file="xdp_prog.c")
 
 # Attach XDP program to the network interface
 device = "eth0"  # Change this to your network interface
-fn = bpf.load_func("xdp_prog", BPF.XDP)
+fn = bpf.load_func("xdp_prog", BPF.XDP, debug=4)
 bpf.attach_xdp(device, fn, 0)
 
 # Get reference to the ring buffer map
