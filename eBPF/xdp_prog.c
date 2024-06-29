@@ -7,24 +7,27 @@
 #include <linux/types.h>
 #include <linux/if_ether.h>
 
-struct ip_range {
+struct ip_range
+{
     __u32 ip;
     __u32 mask;
 };
 
-struct event {
+struct event
+{
     __u32 src_ip;
 };
 
 BPF_HASH(blocked_ips, struct ip_range, __u32, 128);
 BPF_RINGBUF_OUTPUT(events, 4096);
 
-static __always_inline int ip_in_range(__u32 ip, struct ip_range *range) {
+static __always_inline int ip_in_range(__u32 ip, struct ip_range *range)
+{
     return (ip & range->mask) == (range->ip & range->mask);
 }
 
-SEC("xdp")
-int xdp_prog(struct xdp_md *ctx) {
+__attribute__((section("xdp"), used)) int xdp_prog(struct xdp_md *ctx)
+{
     void *data_end = (void *)(long)ctx->data_end;
     void *data = (void *)(long)ctx->data;
     struct ethhdr *eth = data;
@@ -42,13 +45,16 @@ int xdp_prog(struct xdp_md *ctx) {
     if ((void *)ip + sizeof(*ip) > data_end)
         return XDP_PASS;
 
-    for (int i = 0; i < 128; i++) {
+    for (int i = 0; i < 128; i++)
+    {
         range.ip = i; // This is a placeholder and may need to be changed based on your blocked IP ranges
         blocked = bpf_map_lookup_elem(&blocked_ips, &range);
-        if (blocked && ip_in_range(ip->saddr, &range)) {
+        if (blocked && ip_in_range(ip->saddr, &range))
+        {
             struct event *e;
             e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
-            if (e) {
+            if (e)
+            {
                 e->src_ip = ip->saddr;
                 bpf_ringbuf_submit(e, 0);
             }
@@ -59,4 +65,4 @@ int xdp_prog(struct xdp_md *ctx) {
     return XDP_PASS;
 }
 
-char _license[] SEC("license") = "GPL";
+char _license[] __attribute__((section("license"), used)) = "GPL";
