@@ -65,4 +65,3 @@ __attribute__((section("xdp"), used)) int xdp_prog(struct xdp_md *ctx)
     return XDP_PASS;
 }
 
-char _license[] __attribute__((section("license"), used)) = "GPL";
