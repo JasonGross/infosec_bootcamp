@@ -30,7 +30,10 @@ int xdp_prog(struct xdp_md *ctx)
         return XDP_DROP;
 
     return XDP_PASS;
-}""", debug=4)
+}
+
+char __license[] __attribute__((section("license"), used)) = "GPL";
+""", debug=4)
 
 try:
     fn = b.load_func("xdp_prog", BPF.XDP)
