@@ -14,22 +14,25 @@ struct ip_range
 };
 
 SEC("maps")
-struct bpf_map_def blocked_ips = {
-    .type = BPF_MAP_TYPE_HASH,
-    .key_size = sizeof(struct ip_range),
-    .value_size = sizeof(__u32),
-    .max_entries = 128,
-};
+BPF_HASH(blocked_ips, struct ip_range, __u32, 128);
+// struct bpf_map_def blocked_ips = {
+//     .type = BPF_MAP_TYPE_HASH,
+//     .key_size = sizeof(struct ip_range),
+//     .value_size = sizeof(__u32),
+//     .max_entries = 128,
+// };
 
 struct event
 {
     __u32 src_ip;
 };
 
-struct bpf_map_def SEC("maps") events = {
-    .type = BPF_MAP_TYPE_RINGBUF,
-    .max_entries = 4096,
-};
+SEC("maps")
+BPF_RINGBUF_OUTPUT(events, 4096);
+// struct bpf_map_def events = {
+//     .type = BPF_MAP_TYPE_RINGBUF,
+//     .max_entries = 4096,
+// };
 
 static __always_inline int ip_in_range(__u32 ip, struct ip_range *range)
 {
