@@ -13,7 +13,8 @@ struct ip_range
     __u32 mask;
 };
 
-struct bpf_map_def SEC("maps") blocked_ips = {
+SEC("maps")
+struct bpf_map_def blocked_ips = {
     .type = BPF_MAP_TYPE_HASH,
     .key_size = sizeof(struct ip_range),
     .value_size = sizeof(__u32),
