@@ -13,37 +13,37 @@ struct ip_range
     __u32 mask;
 };
 
+struct bpf_map_def SEC("maps") blocked_ips = {
+    .type = BPF_MAP_TYPE_HASH,
+    .key_size = sizeof(struct ip_range),
+    .value_size = sizeof(__u32),
+    .max_entries = 128,
+};
+
 struct event
 {
     __u32 src_ip;
 };
 
-BPF_MAP_DEF(blocked_ips) = {
-    .map_type = BPF_MAP_TYPE_HASH,
-    .key_size = sizeof(struct ip_range),
-    .value_size = sizeof(__u32),
-    .max_entries = 128,
-};
-BPF_MAP_ADD(blocked_ips);
-
-BPF_MAP_DEF(events) = {
-    .map_type = BPF_MAP_TYPE_RINGBUF,
+struct bpf_map_def SEC("maps") events = {
+    .type = BPF_MAP_TYPE_RINGBUF,
     .max_entries = 4096,
 };
-BPF_MAP_ADD(events);
 
 static __always_inline int ip_in_range(__u32 ip, struct ip_range *range)
 {
     return (ip & range->mask) == (range->ip & range->mask);
 }
 
-SEC("xdp")
+SEC("xdp_prog")
 int xdp_prog(struct xdp_md *ctx)
 {
     void *data_end = (void *)(long)ctx->data_end;
     void *data = (void *)(long)ctx->data;
     struct ethhdr *eth = data;
     struct iphdr *ip;
+    struct ip_range range;
+    __u32 *blocked;
 
     if ((void *)eth + sizeof(*eth) > data_end)
         return XDP_PASS;
@@ -55,15 +55,9 @@ int xdp_prog(struct xdp_md *ctx)
     if ((void *)ip + sizeof(*ip) > data_end)
         return XDP_PASS;
 
-    struct ip_range range;
-    __u32 *blocked;
-
-    // Iterate through blocked IP ranges
     for (int i = 0; i < 128; i++)
     {
-        range.ip = i; // Set the range ip as i for the lookup
-        blocked = bpf_map_lookup_elem(&blocked_ips, &range);
-        if (blocked && ip_in_range(ip->saddr, &range))
+        if (bpf_map_lookup_elem(&blocked_ips, &range) && ip_in_range(ip->saddr, &range))
         {
             struct event *e;
             e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
