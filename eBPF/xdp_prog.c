@@ -13,7 +13,7 @@ struct ip_range
     __u32 mask;
 };
 
-SEC("maps")
+// SEC("maps")
 BPF_HASH(blocked_ips, struct ip_range, __u32, 128);
 // struct bpf_map_def blocked_ips = {
 //     .type = BPF_MAP_TYPE_HASH,
@@ -27,7 +27,7 @@ struct event
     __u32 src_ip;
 };
 
-SEC("maps")
+// SEC("maps")
 BPF_RINGBUF_OUTPUT(events, 4096);
 // struct bpf_map_def events = {
 //     .type = BPF_MAP_TYPE_RINGBUF,
@@ -39,7 +39,7 @@ static __always_inline int ip_in_range(__u32 ip, struct ip_range *range)
     return (ip & range->mask) == (range->ip & range->mask);
 }
 
-SEC("xdp_prog")
+// SEC("xdp_prog")
 int xdp_prog(struct xdp_md *ctx)
 {
     void *data_end = (void *)(long)ctx->data_end;
