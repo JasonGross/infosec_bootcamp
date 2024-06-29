@@ -77,4 +77,4 @@ int xdp_prog(struct xdp_md *ctx)
     return XDP_PASS;
 }
 
-char _license[] = "GPL";
+// char _license[] = "GPL";
